@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Becalm — 판단의 타임머신</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" crossorigin>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=IBM+Plex+Mono:wght@400;500&display=swap');
+
+  body { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+
+  @font-face {
+    font-family: 'Pretendard-Fallback';
+    src: local('Apple SD Gothic Neo'), local('Malgun Gothic'), local('sans-serif');
+    font-display: swap;
+  }
+  :root {
+    --ink: #0e0d0b; --paper: #f5f1ea; --warm-mid: #e8e2d8;
+    --amber: #c8883a; --amber-light: #e8a84a; --amber-pale: #fdf3e3;
+    --ghost: rgba(14,13,11,0.08); --ghost-md: rgba(14,13,11,0.15);
+    --serif: 'DM Serif Display', 'Pretendard', -apple-system, sans-serif;
+    --sans: 'Pretendard', 'Pretendard-Fallback', -apple-system, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+    --mono: 'IBM Plex Mono', 'SF Mono', 'Menlo', monospace;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body { background: var(--paper); color: var(--ink); font-family: var(--sans); font-weight: 400; line-height: 1.7; overflow-x: hidden; }
+  body::before { content: ''; position: fixed; inset: 0; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E"); pointer-events: none; z-index: 999; opacity: .5; }
+
+  nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; display: flex; align-items: center; justify-content: space-between; padding: 20px 48px; background: rgba(245,241,234,0.85); backdrop-filter: blur(12px); border-bottom: 1px solid var(--ghost); }
+  .nav-logo { font-family: var(--serif); font-size: 1.35rem; letter-spacing: -0.02em; color: var(--ink); text-decoration: none; }
+  .nav-cta { font-family: var(--mono); font-size: 0.75rem; letter-spacing: 0.08em; color: var(--paper); background: var(--ink); padding: 10px 22px; border: none; cursor: pointer; text-decoration: none; transition: background .2s, transform .15s; }
+  .nav-cta:hover { background: var(--amber); transform: translateY(-1px); }
+
+  .hero { min-height: 100vh; display: flex; flex-direction: column; justify-content: center; padding: 120px 48px 80px; position: relative; overflow: hidden; }
+  .hero-rings { position: absolute; right: -120px; top: 50%; transform: translateY(-50%); width: 680px; height: 680px; pointer-events: none; }
+  .ring { position: absolute; border-radius: 50%; border: 1px solid var(--ghost-md); top: 50%; left: 50%; transform: translate(-50%, -50%); }
+  .ring:nth-child(1) { width: 200px; height: 200px; border-color: rgba(200,136,58,.35); }
+  .ring:nth-child(2) { width: 340px; height: 340px; border-color: rgba(200,136,58,.2); }
+  .ring:nth-child(3) { width: 490px; height: 490px; border-color: rgba(200,136,58,.12); }
+  .ring:nth-child(4) { width: 640px; height: 640px; border-color: var(--ghost); }
+  .ring-inner { position: absolute; top: 50%; left: 50%; width: 200px; height: 200px; transform: translate(-50%, -50%); }
+  .tick { position: absolute; width: 2px; height: 10px; background: var(--amber); top: 0; left: 50%; transform-origin: bottom center; opacity: .7; }
+  .clock-hand { position: absolute; top: 50%; left: 50%; width: 2px; height: 80px; background: var(--amber); transform-origin: bottom center; transform: translate(-50%, -100%) rotate(0deg); animation: sweep 8s linear infinite; }
+  .clock-hand-short { position: absolute; top: 50%; left: 50%; width: 3px; height: 52px; background: var(--ink); transform-origin: bottom center; transform: translate(-50%, -100%) rotate(120deg); animation: sweep 96s linear infinite; }
+  @keyframes sweep { to { transform: translate(-50%, -100%) rotate(360deg); } }
+  .hero-eyebrow { font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.18em; color: var(--amber); text-transform: uppercase; margin-bottom: 28px; opacity: 0; animation: fadeUp .8s .2s forwards; }
+  .hero-typing-wrap { font-family: var(--mono); font-size: 0.88rem; letter-spacing: 0.02em; color: rgba(14,13,11,.45); margin-bottom: 16px; min-height: 1.4em; opacity: 0; animation: fadeUp .85s .3s forwards; }
+  .hero-typing { border-right: none; }
+  .typing-cursor { font-weight: 300; color: var(--amber); animation: blink .7s step-end infinite; }
+  @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: 0; } }
+  .hero-headline { font-family: var(--serif); font-size: clamp(3rem, 6vw, 5.5rem); font-weight: 700; line-height: 1.08; letter-spacing: -0.03em; max-width: 780px; opacity: 0; animation: fadeUp .9s .35s forwards; }
+  .hero-headline em { font-style: italic; color: var(--amber); }
+  .hero-sub { font-size: 1.1rem; line-height: 1.75; max-width: 560px; margin-top: 28px; color: rgba(14,13,11,.65); opacity: 0; animation: fadeUp .9s .55s forwards; }
+  .hero-actions { margin-top: 48px; display: flex; gap: 16px; align-items: center; opacity: 0; animation: fadeUp .9s .7s forwards; }
+  .btn-primary { font-family: var(--mono); font-size: 0.78rem; letter-spacing: .1em; color: var(--paper); background: var(--ink); padding: 16px 36px; border: 2px solid var(--ink); text-decoration: none; transition: all .2s; }
+  .btn-primary:hover { background: var(--amber); border-color: var(--amber); transform: translateY(-2px); }
+  .btn-ghost { font-family: var(--mono); font-size: 0.72rem; letter-spacing: .1em; color: rgba(14,13,11,.55); text-decoration: none; border-bottom: 1px solid currentColor; padding-bottom: 2px; transition: color .2s; }
+  .btn-ghost:hover { color: var(--amber); }
+  .hero-stat { margin-top: 64px; display: flex; gap: 48px; opacity: 0; animation: fadeUp .9s .85s forwards; }
+  .stat-item { display: flex; flex-direction: column; gap: 4px; }
+  .stat-num { font-family: var(--serif); font-size: 2rem; color: var(--ink); line-height: 1; }
+  .stat-label { font-family: var(--mono); font-size: 0.65rem; letter-spacing: .12em; color: rgba(14,13,11,.45); text-transform: uppercase; }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
+
+  section { padding: 120px 48px; }
+  .section-label { font-family: var(--mono); font-size: 0.68rem; letter-spacing: .18em; text-transform: uppercase; color: var(--amber); margin-bottom: 20px; }
+  .section-title { font-family: var(--serif); font-size: clamp(2rem, 3.5vw, 3.2rem); font-weight: 700; line-height: 1.1; letter-spacing: -0.025em; max-width: 680px; }
+
+  .section-title em { font-style: italic; color: var(--amber); }
+
+  .demo { background: var(--paper); border-top: 1px solid var(--warm-mid); }
+  .demo-gif { margin-top: 48px; }
+  .demo-gif-placeholder { width: 100%; max-width: 800px; aspect-ratio: 16 / 9; background: var(--ink); border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; }
+  .demo-gif-icon { font-size: 2.4rem; color: var(--amber); opacity: .6; }
+  .demo-gif-text { font-family: var(--mono); font-size: 0.72rem; letter-spacing: .12em; color: rgba(245,241,234,.35); text-transform: uppercase; }
+  .demo-flow { margin-top: 48px; display: flex; align-items: flex-start; gap: 0; }
+  .demo-step { flex: 1; padding: 24px 20px; border: 1px solid var(--warm-mid); background: #fff; }
+  .demo-step-num { font-family: var(--mono); font-size: 0.62rem; letter-spacing: .15em; color: var(--amber); }
+  .demo-step h4 { font-family: var(--serif); font-size: 1.1rem; font-weight: 700; letter-spacing: -0.02em; margin: 8px 0 6px; }
+  .demo-step p { font-size: 0.82rem; color: rgba(14,13,11,.5); line-height: 1.6; }
+  .demo-arrow { display: flex; align-items: center; padding: 0 6px; color: var(--warm-mid); font-size: 1.2rem; margin-top: 36px; }
+
+  .problem-intro { margin-top: 48px; max-width: 720px; }
+  .problem-intro p { font-size: 1.05rem; line-height: 1.8; color: rgba(245,241,234,.55); margin-bottom: 16px; }
+  .problem-intro p:last-child { margin-bottom: 0; }
+  .problem-intro strong { color: rgba(245,241,234,.85); font-weight: 500; }
+  .problem-moments { display: flex; flex-direction: column; gap: 12px; margin-bottom: 32px; }
+  .problem-moment { display: flex; align-items: baseline; gap: 16px; }
+  .moment-label { flex-shrink: 0; font-family: var(--mono); font-size: 0.7rem; letter-spacing: .08em; color: var(--amber); min-width: 72px; padding: 4px 0; border-bottom: 1px solid rgba(200,136,58,.2); }
+  .moment-text { font-size: 1.05rem; line-height: 1.7; color: rgba(245,241,234,.6); }
+  .problem-punchline { margin-top: 8px; }
+  .problem { background: var(--ink); color: var(--paper); }
+  .problem .section-label { color: var(--amber-light); }
+  .problem .section-title { color: var(--paper); max-width: 800px; }
+  .problem-core { margin-top: 64px; display: grid; grid-template-columns: 1fr 1fr; gap: 2px; }
+  .problem-cell { padding: 48px; background: var(--ink); border: 1px solid rgba(245,241,234,.08); position: relative; overflow: hidden; }
+  .problem-cell::before { content: attr(data-num); font-family: var(--serif); font-size: 6rem; color: rgba(245,241,234,.04); position: absolute; right: 24px; top: 16px; line-height: 1; }
+  .problem-cell-icon { font-size: 1.5rem; margin-bottom: 20px; }
+  .problem-cell h3 { font-family: var(--serif); font-size: 1.4rem; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 14px; color: var(--paper); line-height: 1.3; }
+  .problem-cell p { font-size: 0.9rem; color: rgba(245,241,234,.55); line-height: 1.7; }
+  .problem-cell strong { color: rgba(245,241,234,.85); font-weight: 500; }
+  .problem-quote { margin-top: 64px; padding: 48px; border-left: 3px solid var(--amber); background: rgba(200,136,58,.06); }
+  .problem-quote p { font-family: var(--serif); font-size: clamp(1.3rem, 2.5vw, 2rem); font-style: italic; color: var(--paper); line-height: 1.5; letter-spacing: -0.015em; max-width: 860px; }
+  .problem-quote span { display: block; margin-top: 20px; font-family: var(--mono); font-size: 0.7rem; letter-spacing: .12em; color: rgba(245,241,234,.4); text-transform: uppercase; font-style: normal; }
+
+  .who { background: var(--amber-pale); }
+  .who-grid { margin-top: 56px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; background: var(--warm-mid); }
+  .who-card { background: var(--amber-pale); padding: 40px 36px; transition: background .25s; }
+  .who-card:hover { background: #fff; }
+  .who-card-role { font-family: var(--mono); font-size: 0.65rem; letter-spacing: .15em; text-transform: uppercase; color: var(--amber); margin-bottom: 14px; }
+  .who-card h3 { font-family: var(--serif); font-size: 1.25rem; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 12px; line-height: 1.3; }
+  .who-card p { font-size: 0.88rem; color: rgba(14,13,11,.6); line-height: 1.7; }
+  .who-card strong { color: var(--ink); font-weight: 500; }
+  .who-note { margin-top: 40px; text-align: center; font-family: var(--mono); font-size: 0.72rem; letter-spacing: .1em; color: rgba(14,13,11,.4); }
+
+  .gap { background: var(--paper); }
+  .gap-diagram { margin-top: 64px; display: flex; align-items: stretch; }
+  .gap-node { flex: 1; padding: 36px 28px; border: 1px solid var(--warm-mid); display: flex; flex-direction: column; gap: 10px; }
+  .gap-node.lost { background: rgba(200,136,58,.06); border-color: rgba(200,136,58,.3); }
+  .gap-node-label { font-family: var(--mono); font-size: 0.62rem; letter-spacing: .15em; text-transform: uppercase; color: rgba(14,13,11,.35); }
+  .gap-node h4 { font-family: var(--serif); font-size: 1.1rem; font-weight: 700; color: var(--ink); }
+  .gap-node.lost h4 { color: rgba(200,136,58,.8); }
+  .gap-node p { font-size: 0.82rem; color: rgba(14,13,11,.5); line-height: 1.6; }
+  .gap-arrow { display: flex; align-items: center; padding: 0 8px; color: var(--warm-mid); font-size: 1.4rem; align-self: center; }
+  .tool-failure { margin-top: 64px; display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; }
+  .tool-item { padding: 24px 20px; border: 1px solid var(--warm-mid); background: #fff; }
+  .tool-name { font-family: var(--mono); font-size: 0.7rem; letter-spacing: .08em; font-weight: 500; margin-bottom: 10px; color: var(--ink); }
+  .tool-desc { font-size: 0.8rem; color: rgba(14,13,11,.5); line-height: 1.6; }
+
+  .solution { background: var(--ink); color: var(--paper); }
+  .solution .section-title { color: var(--paper); }
+  .solution-steps { margin-top: 64px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 2px; }
+  .solution-step { padding: 52px 44px; background: var(--ink); border: 1px solid rgba(245,241,234,.07); }
+  .solution-step-num { font-family: var(--serif); font-size: 4rem; color: rgba(200,136,58,.25); line-height: 1; margin-bottom: 28px; }
+  .solution-step-tag { font-family: var(--mono); font-size: 0.62rem; letter-spacing: .15em; text-transform: uppercase; color: var(--amber); margin-bottom: 14px; }
+  .solution-step h3 { font-family: var(--serif); font-size: 1.5rem; font-weight: 700; letter-spacing: -0.02em; color: var(--paper); margin-bottom: 16px; line-height: 1.25; }
+  .solution-step p { font-size: 0.88rem; color: rgba(245,241,234,.5); line-height: 1.75; }
+
+
+
+  .voices { background: var(--paper); }
+  .voices-grid { margin-top: 56px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 2px; background: var(--warm-mid); }
+  .voice-card { background: var(--paper); padding: 44px 40px; border: 1px solid var(--warm-mid); }
+  .voice-quote { font-family: var(--serif); font-size: 1.15rem; font-style: italic; line-height: 1.6; color: var(--ink); letter-spacing: -0.01em; margin-bottom: 24px; position: relative; }
+  .voice-quote::before { content: '\201C'; font-family: var(--serif); font-size: 4rem; color: var(--amber); opacity: .3; position: absolute; top: -20px; left: -8px; line-height: 1; }
+  .voice-from { font-family: var(--mono); font-size: 0.68rem; letter-spacing: .12em; text-transform: uppercase; color: rgba(14,13,11,.4); }
+  .voices-proof { margin-top: 36px; text-align: center; font-family: var(--mono); font-size: 0.7rem; letter-spacing: .1em; color: rgba(14,13,11,.35); }
+
+  .pricing { background: var(--warm-mid); }
+  .pricing-grid { margin-top: 56px; display: grid; grid-template-columns: 1fr 1fr; gap: 2px; max-width: 800px; background: rgba(14,13,11,.1); }
+  .plan { background: var(--paper); padding: 48px 44px; }
+  .plan.featured { background: var(--ink); color: var(--paper); }
+  .plan-label { font-family: var(--mono); font-size: 0.65rem; letter-spacing: .18em; text-transform: uppercase; color: rgba(14,13,11,.4); margin-bottom: 16px; }
+  .plan.featured .plan-label { color: rgba(245,241,234,.4); }
+  .plan-price { font-family: var(--serif); font-size: 3rem; line-height: 1; letter-spacing: -0.03em; margin-bottom: 6px; }
+  .plan-period { font-family: var(--mono); font-size: 0.7rem; color: rgba(14,13,11,.4); margin-bottom: 32px; }
+  .plan.featured .plan-period { color: rgba(245,241,234,.4); }
+  .plan-features { list-style: none; display: flex; flex-direction: column; gap: 12px; margin-bottom: 40px; }
+  .plan-features li { font-size: 0.88rem; color: rgba(14,13,11,.7); display: flex; align-items: flex-start; gap: 10px; line-height: 1.5; }
+  .plan.featured .plan-features li { color: rgba(245,241,234,.65); }
+  .plan-features li::before { content: '→'; color: var(--amber); flex-shrink: 0; font-family: var(--mono); font-size: 0.75rem; margin-top: 2px; }
+  .plan-btn { display: inline-block; font-family: var(--mono); font-size: 0.72rem; letter-spacing: .12em; text-transform: uppercase; text-decoration: none; padding: 14px 30px; border: 2px solid var(--ink); color: var(--ink); transition: all .2s; }
+  .plan-btn:hover { background: var(--ink); color: var(--paper); }
+  .plan.featured .plan-btn { border-color: var(--amber); color: var(--amber); }
+  .plan.featured .plan-btn:hover { background: var(--amber); color: var(--ink); }
+
+  .cta-section { background: var(--ink); padding: 140px 48px; text-align: center; position: relative; overflow: hidden; }
+  .cta-section::before, .cta-section::after { content: ''; position: absolute; border-radius: 50%; border: 1px solid rgba(200,136,58,.15); top: 50%; left: 50%; transform: translate(-50%, -50%); }
+  .cta-section::before { width: 600px; height: 600px; }
+  .cta-section::after { width: 900px; height: 900px; border-color: rgba(200,136,58,.07); }
+  .cta-inner { position: relative; z-index: 1; }
+  .cta-label { font-family: var(--mono); font-size: 0.68rem; letter-spacing: .2em; text-transform: uppercase; color: var(--amber); margin-bottom: 28px; }
+  .cta-headline { font-family: var(--serif); font-size: clamp(2.4rem, 5vw, 4.5rem); font-weight: 700; line-height: 1.08; letter-spacing: -0.03em; color: var(--paper); max-width: 760px; margin: 0 auto 16px; }
+  .cta-headline em { font-style: italic; color: var(--amber); }
+  .cta-sub { font-size: 1rem; color: rgba(245,241,234,.45); max-width: 480px; margin: 0 auto 48px; }
+  .cta-btn-big { display: inline-block; font-family: var(--mono); font-size: 0.82rem; letter-spacing: .14em; text-transform: uppercase; color: var(--ink); background: var(--amber); padding: 20px 52px; text-decoration: none; border: 2px solid var(--amber); transition: all .2s; }
+  .cta-btn-big:hover { background: transparent; color: var(--amber); transform: translateY(-3px); }
+  .cta-fine { margin-top: 24px; font-family: var(--mono); font-size: 0.65rem; letter-spacing: .1em; color: rgba(245,241,234,.25); }
+
+  footer { background: var(--ink); color: rgba(245,241,234,.35); padding: 40px 48px; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(245,241,234,.07); }
+  .footer-logo { font-family: var(--serif); font-size: 1.1rem; color: rgba(245,241,234,.6); }
+  .footer-copy { font-family: var(--mono); font-size: 0.65rem; letter-spacing: .1em; }
+
+  .reveal { opacity: 0; transform: translateY(32px); transition: opacity .7s ease, transform .7s ease; }
+  .reveal.visible { opacity: 1; transform: translateY(0); }
+
+  /* ========== DESKTOP ========== */
+  @media (max-width: 900px) {
+    nav { padding: 16px 24px; }
+    section, .hero, .cta-section { padding-left: 24px; padding-right: 24px; }
+    .hero { padding-top: 100px; } .hero-rings { display: none; }
+    .problem-core, .solution-steps { grid-template-columns: 1fr; }
+    .who-grid { grid-template-columns: 1fr 1fr; }
+    .tool-failure { grid-template-columns: repeat(2, 1fr); }
+    .voices-grid, .pricing-grid { grid-template-columns: 1fr; }
+    footer { flex-direction: column; gap: 12px; text-align: center; }
+  }
+
+  /* ========== MOBILE 최적화 ========== */
+  @media (max-width: 600px) {
+    nav { padding: 14px 20px; }
+    .nav-logo { font-size: 1.15rem; }
+    .nav-cta { font-size: 0.68rem; padding: 8px 16px; }
+
+    section, .hero, .cta-section { padding-left: 20px; padding-right: 20px; }
+    .hero { padding-top: 88px; padding-bottom: 56px; min-height: auto; }
+    .hero-eyebrow { font-size: 0.6rem; letter-spacing: 0.14em; margin-bottom: 20px; }
+    .hero-typing-wrap { font-size: 0.78rem; margin-bottom: 12px; }
+    .hero-headline { font-size: clamp(2rem, 8vw, 2.8rem); line-height: 1.15; letter-spacing: -0.02em; }
+    .hero-sub { font-size: 0.95rem; line-height: 1.7; margin-top: 20px; max-width: 100%; }
+    .hero-sub br { display: none; }
+    .hero-actions { margin-top: 32px; flex-direction: column; align-items: stretch; gap: 12px; }
+    .btn-primary { text-align: center; padding: 14px 24px; font-size: 0.75rem; }
+    .btn-ghost { text-align: center; padding: 8px 0; }
+    .hero-stat { margin-top: 40px; flex-wrap: wrap; gap: 24px; }
+    .stat-num { font-size: 1.6rem; }
+    .stat-label { font-size: 0.58rem; }
+
+    .demo-flow { flex-direction: column; gap: 0; }
+    .demo-arrow { transform: rotate(90deg); padding: 8px 0; margin-top: 0; align-self: center; }
+    .demo-step { padding: 20px; }
+    .demo-step h4 { font-size: 1rem; }
+    .demo-gif-placeholder { aspect-ratio: 4 / 3; border-radius: 6px; }
+
+    .problem-intro p { font-size: 0.92rem; }
+    .problem-moment { gap: 12px; }
+    .moment-label { font-size: 0.62rem; min-width: 60px; }
+    .moment-text { font-size: 0.92rem; }
+
+    section { padding-top: 80px; padding-bottom: 80px; }
+    .section-label { font-size: 0.6rem; margin-bottom: 14px; }
+    .section-title { font-size: clamp(1.6rem, 6vw, 2.2rem); line-height: 1.2; }
+
+    .problem-core { grid-template-columns: 1fr; gap: 1px; }
+    .problem-cell { padding: 32px 24px; }
+    .problem-cell::before { font-size: 4rem; right: 16px; top: 12px; }
+    .problem-cell h3 { font-size: 1.2rem; }
+    .problem-cell p { font-size: 0.85rem; }
+    .problem-quote { padding: 32px 24px; margin-top: 40px; }
+    .problem-quote p { font-size: clamp(1.1rem, 4vw, 1.5rem); }
+
+    .who-grid { grid-template-columns: 1fr; gap: 1px; }
+    .who-card { padding: 28px 24px; }
+    .who-card h3 { font-size: 1.1rem; }
+    .who-card p { font-size: 0.82rem; }
+    .who-note { font-size: 0.65rem; margin-top: 28px; }
+
+    .gap-diagram { flex-direction: column; gap: 0; }
+    .gap-arrow { transform: rotate(90deg); padding: 8px 0; font-size: 1.2rem; }
+    .gap-node { padding: 28px 24px; }
+    .tool-failure { grid-template-columns: 1fr; gap: 8px; }
+    .tool-item { padding: 20px; }
+
+    .solution-steps { grid-template-columns: 1fr; gap: 1px; }
+    .solution-step { padding: 36px 24px; }
+    .solution-step-num { font-size: 3rem; margin-bottom: 20px; }
+    .solution-step h3 { font-size: 1.25rem; }
+    .solution-step p { font-size: 0.82rem; }
+
+    .voices-grid { grid-template-columns: 1fr; gap: 1px; }
+    .voice-card { padding: 32px 24px; }
+    .voice-quote { font-size: 1rem; }
+    .voices-proof { font-size: 0.62rem; }
+
+    .pricing-grid { grid-template-columns: 1fr; }
+    .plan { padding: 36px 28px; }
+    .plan-price { font-size: 2.4rem; }
+    .plan-btn { width: 100%; text-align: center; }
+
+    .cta-section { padding: 100px 20px; }
+    .cta-headline { font-size: clamp(1.8rem, 7vw, 2.8rem); }
+    .cta-btn-big { padding: 16px 36px; font-size: 0.75rem; }
+    .cta-fine { font-size: 0.58rem; }
+
+    footer { padding: 32px 20px; flex-direction: column; gap: 10px; text-align: center; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="#" class="nav-logo">Becalm</a>
+  <a href="https://chromewebstore.google.com/detail/becalm-ai-work-digest/ggdhmkfpacbphefimhmfobidhonkheno?utm_source=item-share-cb" class="nav-cta" target="_blank">사용해보기 →</a>
+</nav>
+
+<section class="hero">
+  <div class="hero-rings">
+    <div class="ring"></div><div class="ring"></div><div class="ring"></div><div class="ring"></div>
+    <div class="ring-inner" id="clockFace">
+      <div class="clock-hand"></div>
+      <div class="clock-hand-short"></div>
+    </div>
+  </div>
+  <p class="hero-eyebrow">Zero-Input Work/Knowledge Intelligence</p>
+  <div class="hero-typing-wrap">
+    <span class="hero-typing" id="heroTyping"></span><span class="typing-cursor">|</span>
+  </div>
+  <h1 class="hero-headline">
+    <em>판단 당시로</em><br>
+    즉시 돌아가는<br>
+    타임머신.
+  </h1>
+  <p class="hero-sub">
+    업무 과정을 자동으로 따라가며, 당시의 대안·근거·상황을 그대로 보존합니다.<br>
+    따로 정리하지 않아도, Becalm이 알아서 기록합니다.<br>
+    <strong>판단에만 집중하실 수 있도록.</strong>
+  </p>
+  <div class="hero-actions">
+    <a href="https://chromewebstore.google.com/detail/becalm-ai-work-digest/ggdhmkfpacbphefimhmfobidhonkheno?utm_source=item-share-cb" class="btn-primary" target="_blank">사용해보기 →</a>
+    <a href="#how" class="btn-ghost">어떻게 작동하나요?</a>
+  </div>
+  <div class="hero-stat">
+    <div class="stat-item"><span class="stat-num">102</span><span class="stat-label">지식노동자 인터뷰</span></div>
+    <div class="stat-item"><span class="stat-num">87</span><span class="stat-label">맥락 손실 Pain 공감</span></div>
+    <div class="stat-item"><span class="stat-num">1.5h</span><span class="stat-label">일평균 맥락 복기 시간</span></div>
+  </div>
+</section>
+
+<section class="demo" id="how">
+  <p class="section-label reveal">How It Works</p>
+  <h2 class="section-title reveal">하루 업무,<br><em>이렇게 기록됩니다</em></h2>
+  <div class="demo-gif reveal">
+    <img src="./WITHOUT_MVP_DEMO.gif" alt="Becalm Product Demo" style="width: 100%; max-width: 800px; border-radius: 8px; display: block;" />
+  </div>
+  <div class="demo-flow reveal">
+    <div class="demo-step">
+      <span class="demo-step-num">01</span>
+      <h4>시작 클릭</h4>
+      <p>업무 시작 전, 버튼 하나만 누르세요</p>
+    </div>
+    <div class="demo-arrow">→</div>
+    <div class="demo-step">
+      <span class="demo-step-num">02</span>
+      <h4>평소처럼 업무</h4>
+      <p>웹 리서치·AI 대화·메신저 — 추가 입력 없이 자동 수집</p>
+    </div>
+    <div class="demo-arrow">→</div>
+    <div class="demo-step">
+      <span class="demo-step-num">03</span>
+      <h4>Daily Scrum 생성</h4>
+      <p>하루의 판단 흐름이 자동 정리된 업무 회고</p>
+    </div>
+    <div class="demo-arrow">→</div>
+    <div class="demo-step">
+      <span class="demo-step-num">04</span>
+      <h4>아침 복기 메일</h4>
+      <p>다음날 아침, 어제의 맥락이 메일로 도착합니다</p>
+    </div>
+  </div>
+</section>
+
+<section class="problem" id="problem">
+  <p class="section-label reveal">Problem</p>
+  <h2 class="section-title reveal">결정은 남는다.<br><em>왜 그 결정이었는지는 사라진다.</em></h2>
+  <div class="problem-intro reveal">
+    <div class="problem-moments">
+      <div class="problem-moment"><span class="moment-label">오늘 오후</span><span class="moment-text">오전에 했던 생각을 설명하는데, 이미 흐릿합니다</span></div>
+      <div class="problem-moment"><span class="moment-label">3개월 전</span><span class="moment-text">왜 A안을 골랐는지, 근거가 떠오르지 않습니다</span></div>
+      <div class="problem-moment"><span class="moment-label">3년간</span><span class="moment-text">성과를 포트폴리오로 정리하려는데, 결론만 남아 있습니다</span></div>
+    </div>
+    <p class="problem-punchline"><strong>기억을 더듬지만, 생생하고 명료하게 떠오르지 않는 것이 현실입니다.</strong></p>
+    <p>이유는 단순합니다. <strong>"왜 그 결정이었는지"</strong> — 대안도, 근거도, 상황도 — 어디에도 기록되지 않았기 때문입니다.</p>
+  </div>
+  <div class="problem-core reveal">
+    <div class="problem-cell" data-num="1">
+      <div class="problem-cell-icon">📂</div>
+      <h3>사고의 과정이 기록되지 않아,<br>결국 일을 두 번 한다</h3>
+      <p>A로 결정했지만, 후보였던 B·C가 무엇이었는지, 각각을 왜 Drop했는지는 알 수 없습니다. <strong>당시의 제약 조건, 비교 근거, 판단의 흐름</strong>이 남아 있지 않아 — "분명 지난달에 정리했는데..." 하며 같은 고민을 처음부터 다시 합니다.</p>
+    </div>
+    <div class="problem-cell" data-num="2">
+      <div class="problem-cell-icon">🔗</div>
+      <h3>남긴 기록마저 흩어져,<br>맥락이 이어지지 않는다</h3>
+      <p>Notion엔 정리 문서가, Drive엔 파일이, Slack엔 대화가 있습니다. 하지만 이 기록들이 서로 연결되지 않아 <strong>판단과 판단 사이의 맥락이 끊깁니다.</strong> 따로 정리하지 않은 고민과 대안은 그대로 휘발됩니다.</p>
+    </div>
+  </div>
+  <div class="problem-quote reveal">
+    <p>우리는 매일 수시간을 '이미 한 번 생각했던 것을 다시 생각하는 데' 씁니다. <em>정리하고 공유하기 위해, 결국 일을 두 번 하는 셈입니다.</em></p>
+    <span>— 102명 지식노동자 심층인터뷰, 87명 공감</span>
+  </div>
+</section>
+
+<section class="who" id="who">
+  <p class="section-label reveal">Who Feels This</p>
+  <h2 class="section-title reveal"><em>나의</em> 판단이 곧 실력인<br>사람들의 고질적인 문제</h2>
+  <div class="who-grid reveal">
+    <div class="who-card">
+      <p class="who-card-role">Founder · Co-Founder</p>
+      <h3>피벗 근거가 구두로만 존재합니다</h3>
+      <p>채용 판단, 전략 변경, 피벗 결정의 근거가 어디에도 기록되지 않습니다. <strong>투자자에게 "왜 이 방향이냐"를 설명할 때</strong> 기억에만 의존합니다.</p>
+    </div>
+    <div class="who-card">
+      <p class="who-card-role">VC · PE</p>
+      <h3>딜 Thesis를 처음부터 다시 쌓습니다</h3>
+      <p>딜 검토 과정의 산업 리서치·재무 분석·경쟁사 비교가 파편화됩니다. <strong>6개월 뒤 유사한 딜에서</strong> 같은 고민을 반복합니다.</p>
+    </div>
+    <div class="who-card">
+      <p class="who-card-role">PM · PO</p>
+      <h3>스펙 변경 근거가 슬랙에 묻혔습니다</h3>
+      <p>우선순위 조정의 맥락이 파편화됩니다. <strong>새 팀원 온보딩 때마다</strong> 같은 결정 배경을 처음부터 설명합니다.</p>
+    </div>
+    <div class="who-card">
+      <p class="who-card-role">전략기획 · 컨설팅</p>
+      <h3>최종 덱엔 결론만 남습니다</h3>
+      <p>킥오프 때 쌓은 인터뷰·리서치·벤치마킹이 결론에 가려집니다. <strong>클라이언트가 "왜 이 방향이었나요?"</strong>라고 물으면 슬랙을 뒤집니다.</p>
+    </div>
+    <div class="who-card">
+      <p class="who-card-role">신사업 · BD</p>
+      <h3>파트너십 맥락이 담당자 머릿속에만 있습니다</h3>
+      <p>미팅마다 쌓이는 시장 탐색·협상 경위·거절 이유가 어디에도 남지 않습니다. <strong>담당자가 바뀌거나 6개월이 지나면</strong> 같은 파트너와 같은 실수를 반복합니다.</p>
+    </div>
+    <div class="who-card">
+      <p class="who-card-role">BizOps · Chief of Staff</p>
+      <h3>수십 개 판단의 맥락이 사라집니다</h3>
+      <p>하루에 내리는 판단이 수십 개. <strong>3개월 뒤 "왜 그렇게 결정했어요?"</strong>에 슬랙을 뒤져도 맥락이 없어서 답하지 못합니다.</p>
+    </div>
+    <div class="who-card">
+      <p class="who-card-role">교수 · 연구자</p>
+      <h3>오늘의 근거를 내일 복기 못합니다</h3>
+      <p>연구·강의·지도까지 일이 너무 많습니다. <strong>오늘 어떤 근거로 방향을 잡았는지</strong> 나중에 복기하기가 힘듭니다.</p>
+    </div>
+  </div>
+  <p class="who-note reveal">— 팀이 아닌, '나'의 판단으로 일하고 증명해야 하는 사람들을 위한 지식관리</p>
+</section>
+
+<section class="gap" id="gap">
+  <p class="section-label reveal">Why Existing Tools Fail</p>
+  <h2 class="section-title reveal">기존 툴은 판단의<br><em>'결과'만</em> 관리합니다</h2>
+  <div class="gap-diagram reveal">
+    <div class="gap-node"><p class="gap-node-label">Step 1</p><h4>정보 수집</h4><p>웹 리서치·AI 대화·이메일·메신저</p></div>
+    <div class="gap-arrow">→</div>
+    <div class="gap-node lost"><p class="gap-node-label">Step 2 · ⚠ 기록 공백</p><h4>해석 · 판단</h4><p>대안 검토, 근거 형성, 맥락 연결 — 아무 데도 남지 않습니다</p></div>
+    <div class="gap-arrow">→</div>
+    <div class="gap-node"><p class="gap-node-label">Step 3</p><h4>결과물</h4><p>덱·리포트·티켓·회의록·문서</p></div>
+  </div>
+  <div class="tool-failure reveal">
+    <div class="tool-item"><p class="tool-name">Slack · Teams</p><p class="tool-desc">판단이 메시지에 파편화. 맥락 없이 결과만 남습니다.</p></div>
+    <div class="tool-item"><p class="tool-name">Notion · Confluence</p><p class="tool-desc">수동으로 정리해야만 남습니다. 판단하면서 기록할 여유가 없습니다.</p></div>
+    <div class="tool-item"><p class="tool-name">Jira · Linear</p><p class="tool-desc">티켓 상태 중심. 왜 이 우선순위였는지의 맥락은 없습니다.</p></div>
+    <div class="tool-item"><p class="tool-name">Pocket · Readwise</p><p class="tool-desc">아티클·하이라이트를 저장만 합니다. 왜 저장했는지, 어떤 판단으로 이어졌는지는 없습니다.</p></div>
+    <div class="tool-item"><p class="tool-name">Notes · Keep</p><p class="tool-desc">메모는 남습니다. 하지만 흩어진 메모들이 판단 흐름으로 연결되지 않습니다.</p></div>
+  </div>
+</section>
+
+<section class="solution" id="solution">
+  <p class="section-label reveal">Solution</p>
+  <h2 class="section-title reveal">결론이 아니라,<br><em>내가 결론에 이른 과정</em>을<br>자동으로 보존합니다</h2>
+  <div class="solution-steps reveal">
+    <div class="solution-step">
+      <div class="solution-step-num">01</div>
+      <p class="solution-step-tag">Stream Log</p>
+      <h3>판단 흔적 자동 수집</h3>
+      <p>평소처럼 일하세요. 웹 리서치·AI 대화(ChatGPT, Claude 등)·이메일·메신저(Slack, Teams)에서 발생하는 판단의 흔적을 Becalm이 실시간으로 수집하고 시간 순으로 연결합니다. 추가 입력 불필요.</p>
+    </div>
+    <div class="solution-step">
+      <div class="solution-step-num">02</div>
+      <p class="solution-step-tag">Context Link</p>
+      <h3>판단과 판단의 맥락 연결</h3>
+      <p>왜 이 판단이 다음 판단으로 이어졌는지의 연결고리가 자동 구성됩니다. 요약 문장마다 참고한 링크·문서·대화가 자동 연결 — "왜 이 결론이었나요?"에 클릭 한 번으로 답합니다.</p>
+    </div>
+    <div class="solution-step">
+      <div class="solution-step-num">03</div>
+      <p class="solution-step-tag">Workflow Map</p>
+      <h3>언제든 즉시 복기</h3>
+      <p>가정→대안→선택→결과의 의사결정 흐름이 한 장의 지도로. 판단 당시로 돌아가듯 흐름 전체를 즉시 복기합니다. 같은 설명을, 같은 리서치를 두 번 하지 않습니다.</p>
+    </div>
+  </div>
+</section>
+
+<section class="voices" id="voices">
+  <p class="section-label reveal">Voice of Customer</p>
+  <h2 class="section-title reveal">직접 들은 이야기입니다</h2>
+  <div class="voices-grid reveal">
+    <div class="voice-card"><p class="voice-quote">초기 스타트업 대표로서 결정을 빠르게 내리다 보니, 시간이 조금만 지나도 왜 그 결정을 내렸는지가 바로 떠오르지 않을 때가 많아요.</p><p class="voice-from">스타트업 대표 · 심층인터뷰</p></div>
+    <div class="voice-card"><p class="voice-quote">결과만 남고 과정이 남지 않아, 결국 일을 한 번 더 하게 됩니다. 경영진한테 왜 이 방향인지 설명할 때마다 슬랙을 뒤집니다.</p><p class="voice-from">대기업 전략기획 · 베타테스터</p></div>
+    <div class="voice-card"><p class="voice-quote">리서치한 내용인데, 막상 필요할 때 어떤 데이터였는지 기억이 안 납니다. 결국 처음부터 재검색하게 됩니다.</p><p class="voice-from">펀드매니저/애널리스트 · 심층인터뷰</p></div>
+    <div class="voice-card"><p class="voice-quote">팀원에게 왜 이 방향인지 설명할 때마다 처음부터 다시 맥락을 꺼내야 합니다. 그 비용이 생각보다 큽니다.</p><p class="voice-from">Co-Founder · 심층인터뷰</p></div>
+  </div>
+  <p class="voices-proof reveal">약 2개월간 지식노동자 102명 심층인터뷰 · 87명 공감 · 베타테스터 24명</p>
+</section>
+
+<section class="pricing" id="pricing">
+  <p class="section-label reveal">Pricing</p>
+  <h2 class="section-title reveal">판단의 맥락을,<br>지금 바로 지식화하세요</h2>
+  <div class="pricing-grid reveal">
+    <div class="plan">
+      <p class="plan-label">Free</p>
+      <p class="plan-price">₩0</p>
+      <p class="plan-period">핵심 가치 체험</p>
+      <ul class="plan-features">
+        <li>판단 기록 및 연결</li><li>Daily 판단 흐름 요약</li><li>Workflow Map 1일 3회</li><li>제한된 히스토리 조회</li>
+      </ul>
+      <a href="https://chromewebstore.google.com/detail/becalm-ai-work-digest/ggdhmkfpacbphefimhmfobidhonkheno?utm_source=item-share-cb" class="plan-btn" target="_blank">사용해보기</a>
+    </div>
+    <div class="plan featured">
+      <p class="plan-label">Pro</p>
+      <p class="plan-price">₩19,000</p>
+      <p class="plan-period">/월 · 연 결제 시 ₩15,000/월</p>
+      <ul class="plan-features">
+        <li>무제한 Workflow Map</li><li>Evidence-first 근거 자동 연결</li><li>Personal RAG 기반 검색·복기</li><li>팀 공유 및 온보딩 문서 출력</li><li>고급 필터 및 시각화</li>
+      </ul>
+      <a href="https://chromewebstore.google.com/detail/becalm-ai-work-digest/ggdhmkfpacbphefimhmfobidhonkheno?utm_source=item-share-cb" class="plan-btn" target="_blank">사용해보기</a>
+    </div>
+  </div>
+</section>
+
+<section class="cta-section">
+  <div class="cta-inner">
+    <p class="cta-label">Get Started</p>
+    <h2 class="cta-headline">오늘의 판단이<br><em>내일의 근거</em>가 되도록.</h2>
+    <p class="cta-sub">크롬 확장 설치 후 오늘 업무부터 적용됩니다. 별도 정리·태깅·회고 불필요.</p>
+    <a href="https://chromewebstore.google.com/detail/becalm-ai-work-digest/ggdhmkfpacbphefimhmfobidhonkheno?utm_source=item-share-cb" class="cta-btn-big" target="_blank">사용해보기 →</a>
+    <p class="cta-fine">설치 1분 · 카드 등록 불필요 · 언제든 해지 가능</p>
+  </div>
+</section>
+
+<footer>
+  <span class="footer-logo">Becalm</span>
+  <span class="footer-copy">© 2026 Without(윗아웃) · Zero-Input Work/Knowledge Intelligence</span>
+</footer>
+
+<script>
+  const reveals = document.querySelectorAll('.reveal');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry, i) => {
+      if (entry.isIntersecting) {
+        setTimeout(() => entry.target.classList.add('visible'), i * 80);
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.1 });
+  reveals.forEach(el => observer.observe(el));
+
+  const face = document.getElementById('clockFace');
+  for (let i = 0; i < 12; i++) {
+    const tick = document.createElement('div');
+    tick.className = 'tick';
+    tick.style.transform = `rotate(${i * 30}deg)`;
+    tick.style.top = '10px';
+    face.appendChild(tick);
+  }
+
+  // Typing animation
+  const phrases = [
+    '어제 오전의 고민',
+    '3개월 전 분기 회의',
+    '6개월 전 딜 Thesis',
+    '작년의 피벗 결정',
+    '지난주 스펙 변경 근거',
+  ];
+  const typingEl = document.getElementById('heroTyping');
+  let phraseIdx = 0;
+  let charIdx = 0;
+  let deleting = false;
+  const typeSpeed = 65;
+  const deleteSpeed = 35;
+  const pauseAfterType = 1800;
+  const pauseAfterDelete = 400;
+
+  function typeLoop() {
+    const current = phrases[phraseIdx];
+    if (!deleting) {
+      typingEl.textContent = current.substring(0, charIdx + 1);
+      charIdx++;
+      if (charIdx >= current.length) {
+        deleting = true;
+        setTimeout(typeLoop, pauseAfterType);
+      } else {
+        setTimeout(typeLoop, typeSpeed);
+      }
+    } else {
+      typingEl.textContent = current.substring(0, charIdx);
+      charIdx--;
+      if (charIdx < 0) {
+        deleting = false;
+        charIdx = 0;
+        phraseIdx = (phraseIdx + 1) % phrases.length;
+        setTimeout(typeLoop, pauseAfterDelete);
+      } else {
+        setTimeout(typeLoop, deleteSpeed);
+      }
+    }
+  }
+  setTimeout(typeLoop, 1200);
+</script>
+</body>
+</html>
